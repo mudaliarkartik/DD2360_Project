@@ -30,6 +30,7 @@
 // Read and output operations
 #include "RW_IO.h"
 
+#include <vector>
 
 int main(int argc, char **argv){
     
@@ -70,9 +71,26 @@ int main(int argc, char **argv){
     for (int is=0; is < param.ns; is++){
         particle_allocate(&param,&part[is],is);
     }
+
+
+    // GPU Allocate Particles
+    particles *part_g = new particles[param.ns];
+    // allocation
+    for (int is=0; is < param.ns; is++){
+        particle_allocate(&param,&part[is],is);
+    }
+    // GPU end
     
+
+
+
     // Initialization
     initGEM(&param,&grd,&field,&field_aux,part,ids);
+
+
+    // Times of each iteration
+    std::vector<double> times;
+    times.reserve(param.ncycles);
     
     
     // **********************************************************//
@@ -94,7 +112,11 @@ int main(int argc, char **argv){
         iMover = cpuSecond(); // start timer for mover
         for (int is=0; is < param.ns; is++)
             mover_PC(&part[is],&field,&grd,&param);
-        eMover += (cpuSecond() - iMover); // stop timer for mover
+
+        // Save current iteration time
+        times.push_back(cpuSecond() - iMover);
+
+        eMover += times[times.size() - 1]; // stop timer for mover
         
         
         
@@ -150,7 +172,14 @@ int main(int argc, char **argv){
     std::cout << "   Mover Time / Cycle   (s) = " << eMover/param.ncycles << std::endl;
     std::cout << "   Interp. Time / Cycle (s) = " << eInterp/param.ncycles  << std::endl;
     std::cout << "**************************************" << std::endl;
-    
+
+    // Print times of each iteration
+    std::cout << "Iterations: " << std::endl;
+
+    for (double iter : times)
+    {
+        std::cout << iter << std::endl;
+    }
     // exit
     return 0;
 }
