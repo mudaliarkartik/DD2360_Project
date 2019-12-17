@@ -72,18 +72,6 @@ int main(int argc, char **argv){
         particle_allocate(&param,&part[is],is);
     }
 
-
-    // GPU Allocate Particles
-    particles *part_g = new particles[param.ns];
-    // allocation
-    for (int is=0; is < param.ns; is++){
-        particle_allocate(&param,&part[is],is);
-    }
-    // GPU end
-    
-
-
-
     // Initialization
     initGEM(&param,&grd,&field,&field_aux,part,ids);
 
