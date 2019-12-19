@@ -1,5 +1,7 @@
 #include "Timing.h"
 
+#include "timewindows.h"
+
 double cpuSecond()
 {
     struct timeval tp;
