@@ -3,6 +3,8 @@
 
 #include <math.h>
 
+#define M_PI       3.14159265358979323846   // pi
+
 /** initialize for magnetic reconnection probelm with Harris current sheet */
 inline void initGEM(struct parameters* param, struct grid* grd, struct EMfield* field, struct EMfield_aux* field_aux, struct particles* part, struct interpDensSpecies* ids){
     
