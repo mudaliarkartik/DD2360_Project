@@ -75,6 +75,24 @@ int main(int argc, char **argv){
     // Initialization
     initGEM(&param,&grd,&field,&field_aux,part,ids);
 
+	// Init GPU variables - copy static memory
+	struct particles *part_gpu = new particles[param.ns];
+
+	for (int is = 0; is < param.ns; is++) {
+		// Copy static memory
+		part_gpu[is] = part[is];
+
+		// Allocate and copy dynamic memory
+		particles_allocate_gpu(&part[is], &part_gpu[is]);
+	}
+
+	// Copy static memory
+	struct grid grd_gpu = grd;
+	struct EMfield field_gpu = field;
+
+	// Allocate and copy dynamic memory
+	grid_field_allocate_gpu(&field, &field_gpu, &grd, &grd_gpu);
+
 
     // Times of each iteration
     std::vector<double> times;
@@ -99,7 +117,7 @@ int main(int argc, char **argv){
         // implicit mover
         iMover = cpuSecond(); // start timer for mover
         for (int is=0; is < param.ns; is++)
-            mover_PC(&part[is],&field,&grd,&param);
+            mover_PC(&part_gpu[is], &field_gpu, &grd_gpu, &param);
 
         // Save current iteration time
         times.push_back(cpuSecond() - iMover);
@@ -136,6 +154,15 @@ int main(int argc, char **argv){
     
     }  // end of one PIC cycle
     
+
+	for (int is = 0; is < param.ns; is++) {
+		// Deallocate particles from gpu
+		particles_free_gpu(&part_gpu[is]);
+	}
+
+	// Deallocate grid and field from gpu
+	grid_field_free_gpu(&field_gpu, &grd_gpu);
+
     /// Release the resources
     // deallocate field
     grid_deallocate(&grd);

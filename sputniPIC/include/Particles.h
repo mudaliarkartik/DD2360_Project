@@ -64,4 +64,20 @@ int mover_PC(struct particles*, struct EMfield*, struct grid*, struct parameters
 /** Interpolation Particle --> Grid: This is for species */
 void interpP2G(struct particles*, struct interpDensSpecies*, struct grid*);
 
+/** Allocate and copy field and grid to gpu */
+void grid_field_allocate_gpu(struct EMfield* field,
+                             struct EMfield* field_gpu,
+                             struct grid* grd,
+                             struct grid* grd_gpu);
+
+/** Allocate and copy particles to gpu */
+void particles_allocate_gpu(struct particles* part,
+                            struct particles* part_gpu);
+
+/** Deallocate particles from gpu */
+void particles_free_gpu(struct particles* part_gpu);
+
+/** Deallocate grid and field from gpu */
+void grid_field_free_gpu(struct EMfield* field_gpu, struct grid* grd_gpu);
+
 #endif
