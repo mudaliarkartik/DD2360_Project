@@ -32,6 +32,98 @@
 
 #include <vector>
 
+// Use this to choose code to compile&run
+#define VERIFY 0
+#define USE_GPU 1
+//////////////////////////////////////////
+
+// Don't change this
+#define USE_CPU (USE_GPU == VERIFY)
+
+inline bool not_eq(float f1, float f2)
+{
+	return fabs(f1 - f2) > 0.0001f;
+}
+
+void verify_mover_PC(parameters& param, particles* part, particles* part_gpu)
+{
+	// Check if mover_PC computed particles correctly
+	particles part_gpu_out;
+	particle_allocate(&param, &part_gpu_out, 0);
+
+	for (int is = 0; is < param.ns; is++)
+	{
+		bool correct = true;
+
+		// Copy dynamic memory
+		particles_copy_gpu_to_cpu(&part_gpu_out, &part_gpu[is]);
+
+		// Compare gpu and cpu dynamic memories
+		for (int i = 0; i < part_gpu_out.nop; i++)
+		{
+			if (not_eq(part[is].x[i], part_gpu_out.x[i]) ||
+				not_eq(part[is].y[i], part_gpu_out.y[i]) ||
+				not_eq(part[is].z[i], part_gpu_out.z[i]) ||
+				not_eq(part[is].u[i], part_gpu_out.u[i]) ||
+				not_eq(part[is].v[i], part_gpu_out.v[i]) ||
+				not_eq(part[is].w[i], part_gpu_out.w[i]) ||
+				not_eq(part[is].q[i], part_gpu_out.q[i]))
+			{
+				printf("ERROR: part not equal at species: %d, index: %d\n", is, i);
+				correct = false;
+				break;
+			}
+		}
+
+		if (correct)
+			printf("Mover_PC %d VERIFIED.\n", is);
+	}
+
+	particle_deallocate(&part_gpu_out);
+}
+
+void verify_interpP2G(grid& grd, parameters& param, interpDensSpecies* ids, interpDensSpecies* ids_gpu)
+{
+	// Check if mover_PC computed particles correctly
+	interpDensSpecies ids_gpu_out;
+	interp_dens_species_allocate(&grd, &ids_gpu_out, 0);
+
+	for (int is = 0; is < param.ns; is++)
+	{
+		bool correct = true;
+
+		// Copy dynamic memory
+		ids_copy_gpu_to_cpu(&ids_gpu_out, &ids_gpu[is], &grd);
+
+		const uint32_t grid_size = grd.nxn * grd.nyn * grd.nzn;
+
+		// Compare gpu and cpu dynamic memories
+		for (int i = 0; i < grid_size; i++)
+		{
+			if (not_eq(ids[is].rhon_flat[i], ids_gpu_out.rhon_flat[i]) ||
+				not_eq(ids[is].Jx_flat[i], ids_gpu_out.Jx_flat[i]) ||
+				not_eq(ids[is].Jy_flat[i], ids_gpu_out.Jy_flat[i]) ||
+				not_eq(ids[is].Jz_flat[i], ids_gpu_out.Jz_flat[i]) ||
+				not_eq(ids[is].pxx_flat[i], ids_gpu_out.pxx_flat[i]) ||
+				not_eq(ids[is].pxy_flat[i], ids_gpu_out.pxy_flat[i]) ||
+				not_eq(ids[is].pxz_flat[i], ids_gpu_out.pxz_flat[i]) ||
+				not_eq(ids[is].pyy_flat[i], ids_gpu_out.pyy_flat[i]) ||
+				not_eq(ids[is].pyz_flat[i], ids_gpu_out.pyz_flat[i]) ||
+				not_eq(ids[is].pzz_flat[i], ids_gpu_out.pzz_flat[i]))
+			{
+				printf("ERROR: ids not equal at species: %d, index: %d\n", is, i);
+				correct = false;
+				break;
+			}
+		}
+
+		if (correct)
+			printf("interpP2G %d VERIFIED.\n", is);
+	}
+
+	interp_dens_species_deallocate(&grd, &ids_gpu_out);
+}
+
 int main(int argc, char **argv){
     
     // Read the inputfile and fill the param structure
@@ -75,30 +167,42 @@ int main(int argc, char **argv){
     // Initialization
     initGEM(&param,&grd,&field,&field_aux,part,ids);
 
-	// Init GPU variables - copy static memory
-	struct particles *part_gpu = new particles[param.ns];
 
-	for (int is = 0; is < param.ns; is++) {
-		// Copy static memory
-		part_gpu[is] = part[is];
+
+#ifdef USE_GPU
+	//// GPU Allocation ===========================================
+
+		// >>> Grid and field
+		grid grd_gpu = grd;
+		EMfield field_gpu = field;
 
 		// Allocate and copy dynamic memory
-		particles_allocate_gpu(&part[is], &part_gpu[is]);
-	}
+		grid_field_allocate_and_copy_gpu(&field, &field_gpu, &grd, &grd_gpu);
 
-	// Copy static memory
-	struct grid grd_gpu = grd;
-	struct EMfield field_gpu = field;
 
-	// Allocate and copy dynamic memory
-	grid_field_allocate_gpu(&field, &field_gpu, &grd, &grd_gpu);
+		// >>> Particles and Ids
+		particles *part_gpu = new particles[param.ns];
+		interpDensSpecies* ids_gpu = new interpDensSpecies[param.ns];
+
+		for (int is = 0; is < param.ns; is++) {
+			// Copy static memory
+			part_gpu[is] = part[is];
+			ids_gpu[is] = ids[is];
+
+			// Allocate dynamic memory
+			particles_allocate_and_copy_gpu(&part[is], &part_gpu[is]);
+			ids_allocate_gpu(&ids_gpu[is], &grd);
+		}
+
+	//// ====================================================== GPU
+#endif
+
 
 
     // Times of each iteration
-    std::vector<double> times;
-    times.reserve(param.ncycles);
-    
-    
+    std::vector<double> timesMover;
+	std::vector<double> timesInterp;
+
     // **********************************************************//
     // **** Start the Simulation!  Cycle index start from 1  *** //
     // **********************************************************//
@@ -111,27 +215,69 @@ int main(int argc, char **argv){
     
         // set to zero the densities - needed for interpolation
         setZeroDensities(&idn,ids,&grd,param.ns);
+
+#if USE_GPU
+		// GPU - Set ids to zero
+		ids_set_zero_gpu(ids_gpu, &grd, param.ns);
+#endif
+
+
         
-        
-        
-        // implicit mover
+        // Mover CPU & GPU
         iMover = cpuSecond(); // start timer for mover
-        for (int is=0; is < param.ns; is++)
-            mover_PC(&part_gpu[is], &field_gpu, &grd_gpu, &param);
+		for (int is = 0; is < param.ns; is++)
+		{
+#if USE_GPU
+			mover_PC(&part_gpu[is], &field_gpu, &grd_gpu, &param);
+#endif
+#if USE_CPU
+			mover_PC_cpu(&part[is], &field, &grd, &param);
+#endif
+		}
 
         // Save current iteration time
-        times.push_back(cpuSecond() - iMover);
+		timesMover.push_back(cpuSecond() - iMover);
+        eMover += timesMover[timesMover.size() - 1];
 
-        eMover += times[times.size() - 1]; // stop timer for mover
+#if VERIFY
+		// Test if result GPU == CPU
+		verify_mover_PC(param, part, part_gpu);
+#endif
         
+
+
+
         
-        
-        
-        // interpolation particle to grid
+        // InterpP2G CPU & GPU
         iInterp = cpuSecond(); // start timer for the interpolation step
-        // interpolate species
-        for (int is=0; is < param.ns; is++)
-            interpP2G(&part[is],&ids[is],&grd);
+		for (int is = 0; is < param.ns; is++)
+		{
+#if USE_GPU
+			interpP2G(&part_gpu[is], &ids_gpu[is], &grd_gpu);
+#endif
+#if USE_CPU
+			interpP2G_cpu(&part[is], &ids[is], &grd);
+#endif
+		}
+
+		// Save current iteration time
+		timesInterp.push_back(cpuSecond() - iInterp);
+		iInterp += timesInterp[timesInterp.size() - 1];
+
+#if VERIFY
+		verify_interpP2G(grd, param, ids, ids_gpu);
+#endif
+
+
+
+
+		// TODO: write copy-back for the rest of the program to use 
+		//		 gpu-calculated values
+
+
+
+
+
         // apply BC to interpolated densities
         for (int is=0; is < param.ns; is++)
             applyBCids(&ids[is],&grd,&param);
@@ -140,28 +286,30 @@ int main(int argc, char **argv){
         // interpolate charge density from center to node
         applyBCscalarDensN(idn.rhon,&grd,&param);
         
-        
-        
         // write E, B, rho to disk
         if (cycle%param.FieldOutputCycle==0){
             VTK_Write_Vectors(cycle, &grd,&field);
             VTK_Write_Scalars(cycle, &grd,ids,&idn);
         }
-        
-        eInterp += (cpuSecond() - iInterp); // stop timer for interpolation
-        
-        
-    
     }  // end of one PIC cycle
     
 
-	for (int is = 0; is < param.ns; is++) {
-		// Deallocate particles from gpu
-		particles_free_gpu(&part_gpu[is]);
-	}
+#if USE_GPU
+	//// GPU De-allocation ========================================
 
-	// Deallocate grid and field from gpu
-	grid_field_free_gpu(&field_gpu, &grd_gpu);
+		// Grid and field
+		grid_field_free_gpu(&field_gpu, &grd_gpu);
+
+		// Particles and ids
+		for (int is = 0; is < param.ns; is++) 
+		{
+			particles_free_gpu(&part_gpu[is]);
+			ids_free_gpu(&ids_gpu[is]);
+		}
+
+	//// ====================================================== GPU
+#endif
+
 
     /// Release the resources
     // deallocate field
@@ -169,14 +317,13 @@ int main(int argc, char **argv){
     field_deallocate(&grd,&field);
     // interp
     interp_dens_net_deallocate(&grd,&idn);
-    
+
     // Deallocate interpolated densities and particles
     for (int is=0; is < param.ns; is++){
         interp_dens_species_deallocate(&grd,&ids[is]);
         particle_deallocate(&part[is]);
     }
-    
-    
+
     // stop timer
     double iElaps = cpuSecond() - iStart;
     
@@ -188,13 +335,22 @@ int main(int argc, char **argv){
     std::cout << "   Interp. Time / Cycle (s) = " << eInterp/param.ncycles  << std::endl;
     std::cout << "**************************************" << std::endl;
 
-    // Print times of each iteration
-    std::cout << "Iterations: " << std::endl;
+    // Print times of each mover_PC
+    std::cout << "Mover: " << std::endl;
 
-    for (double iter : times)
+    for (double iter : timesMover)
     {
         std::cout << iter << std::endl;
     }
+
+	// Print times of each iterpP2G
+	std::cout << "IterpP2G: " << std::endl;
+
+	for (double iter : timesInterp)
+	{
+		std::cout << iter << std::endl;
+	}
+
     // exit
     return 0;
 }
