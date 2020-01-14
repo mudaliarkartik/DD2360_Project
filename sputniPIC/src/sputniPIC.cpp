@@ -249,7 +249,7 @@ int main(int argc, char **argv){
 
         
         // InterpP2G CPU & GPU
-        iInterp = cpuSecond(); // start timer for the interpolation step
+        eInterp = cpuSecond(); // start timer for the interpolation step
 		for (int is = 0; is < param.ns; is++)
 		{
 #if USE_GPU
@@ -261,8 +261,8 @@ int main(int argc, char **argv){
 		}
 
 		// Save current iteration time
-		timesInterp.push_back(cpuSecond() - iInterp);
-		iInterp += timesInterp[timesInterp.size() - 1];
+		timesInterp.push_back(cpuSecond() - eInterp);
+		eInterp += timesInterp[timesInterp.size() - 1];
 
 #if VERIFY
 		verify_interpP2G(grd, param, ids, ids_gpu);
