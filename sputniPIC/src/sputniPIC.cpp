@@ -34,7 +34,7 @@
 
 // Use this to choose code to compile&run
 #define VERIFY 0
-#define USE_GPU 1
+#define USE_GPU 0
 //////////////////////////////////////////
 
 // Don't change this
@@ -184,6 +184,7 @@ int main(int argc, char **argv){
 		particles *part_gpu = new particles[param.ns];
 		interpDensSpecies* ids_gpu = new interpDensSpecies[param.ns];
 
+
 		for (int is = 0; is < param.ns; is++) {
 			// Copy static memory
 			part_gpu[is] = part[is];
@@ -206,15 +207,15 @@ int main(int argc, char **argv){
     // **********************************************************//
     // **** Start the Simulation!  Cycle index start from 1  *** //
     // **********************************************************//
-    for (int cycle = param.first_cycle_n; cycle < (param.first_cycle_n + param.ncycles); cycle++) {
-        
-        std::cout << std::endl;
-        std::cout << "***********************" << std::endl;
-        std::cout << "   cycle = " << cycle << std::endl;
-        std::cout << "***********************" << std::endl;
-    
-        // set to zero the densities - needed for interpolation
-        setZeroDensities(&idn,ids,&grd,param.ns);
+	for (int cycle = param.first_cycle_n; cycle < (param.first_cycle_n + param.ncycles); cycle++) {
+
+		std::cout << std::endl;
+		std::cout << "***********************" << std::endl;
+		std::cout << "   cycle = " << cycle << std::endl;
+		std::cout << "***********************" << std::endl;
+
+		// set to zero the densities - needed for interpolation
+		setZeroDensities(&idn, ids, &grd, param.ns);
 
 #if USE_GPU
 		// GPU - Set ids to zero
@@ -222,9 +223,9 @@ int main(int argc, char **argv){
 #endif
 
 
-        
-        // Mover CPU & GPU
-        iMover = cpuSecond(); // start timer for mover
+
+		// Mover CPU & GPU
+		iMover = cpuSecond(); // start timer for mover
 		for (int is = 0; is < param.ns; is++)
 		{
 #if USE_GPU
@@ -235,21 +236,21 @@ int main(int argc, char **argv){
 #endif
 		}
 
-        // Save current iteration time
+		// Save current iteration time
 		timesMover.push_back(cpuSecond() - iMover);
-        eMover += timesMover[timesMover.size() - 1];
+		eMover += timesMover[timesMover.size() - 1];
 
 #if VERIFY
 		// Test if result GPU == CPU
 		verify_mover_PC(param, part, part_gpu);
 #endif
-        
 
 
 
-        
-        // InterpP2G CPU & GPU
-        iInterp = cpuSecond(); // start timer for the interpolation step
+
+
+		// InterpP2G CPU & GPU
+		iInterp = cpuSecond(); // start timer for the interpolation step
 		for (int is = 0; is < param.ns; is++)
 		{
 #if USE_GPU
@@ -262,17 +263,20 @@ int main(int argc, char **argv){
 
 		// Save current iteration time
 		timesInterp.push_back(cpuSecond() - iInterp);
-		iInterp += timesInterp[timesInterp.size() - 1];
+		eInterp += timesInterp[timesInterp.size() - 1];
 
 #if VERIFY
 		verify_interpP2G(grd, param, ids, ids_gpu);
 #endif
 
 
-
-
-		// TODO: write copy-back for the rest of the program to use 
-		//		 gpu-calculated values
+#if USE_GPU
+		for (int is = 0; is < param.ns; is++)
+		{
+			// Only variable in need to be copied back to CPU between cycles
+			ids_copy_gpu_to_cpu(&ids[is], &ids_gpu[is], grd);
+		}
+#endif
 
 
 
