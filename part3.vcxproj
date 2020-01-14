@@ -90,7 +90,7 @@
     <ClCompile Include="sputniPIC\src\Grid.cpp" />
     <ClCompile Include="sputniPIC\src\InterpDensNet.cpp" />
     <ClCompile Include="sputniPIC\src\InterpDensSpecies.cpp" />
-    <ClCompile Include="sputniPIC\src\Particles.cpp" />
+    <ClCompile Include="sputniPIC\src\ParticlesCPU.cpp" />
     <ClCompile Include="sputniPIC\src\Particles_aux.cpp" />
     <ClCompile Include="sputniPIC\src\RW_IO.cpp" />
     <ClCompile Include="sputniPIC\src\sputniPIC.cpp" />

@@ -84,6 +84,6 @@
     <ClCompile Include="sputniPIC\src\sputniPIC.cpp" />
     <ClCompile Include="sputniPIC\src\Timing.cpp" />
     <ClCompile Include="sputniPIC\src\TransArraySpace3D.cpp" />
-    <ClCompile Include="sputniPIC\src\Particles.cpp" />
+    <ClCompile Include="sputniPIC\src\ParticlesCPU.cpp" />
   </ItemGroup>
 </Project>
