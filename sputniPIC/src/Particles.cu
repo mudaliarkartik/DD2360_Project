@@ -595,3 +595,73 @@ void interpP2G(particles* part, interpDensSpecies* ids, grid* grd)
 	gpuErrchk(cudaPeekAtLastError());
 	gpuErrchk(cudaDeviceSynchronize());
 }
+
+
+/** allocate particle arrays */
+void particle_allocate(struct parameters* param, struct particles* part, int is)
+{
+    
+    // set species ID
+    part->species_ID = is;
+    // number of particles
+    part->nop = param->np[is];
+    // maximum number of particles
+    part->npmax = param->npMax[is];
+    
+    // choose a different number of mover iterations for ions and electrons
+    if (param->qom[is] < 0){  //electrons
+        part->NiterMover = param->NiterMover;
+        part->n_sub_cycles = param->n_sub_cycles;
+    } else {                  // ions: only one iteration
+        part->NiterMover = 1;
+        part->n_sub_cycles = 1;
+    }
+    
+    // particles per cell
+    part->npcelx = param->npcelx[is];
+    part->npcely = param->npcely[is];
+    part->npcelz = param->npcelz[is];
+    part->npcel = part->npcelx*part->npcely*part->npcelz;
+    
+    // cast it to required precision
+    part->qom = (FPpart) param->qom[is];
+    
+    long npmax = part->npmax;
+    
+    // initialize drift and thermal velocities
+    // drift
+    part->u0 = (FPpart) param->u0[is];
+    part->v0 = (FPpart) param->v0[is];
+    part->w0 = (FPpart) param->w0[is];
+    // thermal
+    part->uth = (FPpart) param->uth[is];
+    part->vth = (FPpart) param->vth[is];
+    part->wth = (FPpart) param->wth[is];
+    
+    
+    //////////////////////////////
+    /// ALLOCATION PARTICLE ARRAYS
+    //////////////////////////////
+    part->x = new FPpart[npmax];
+    part->y = new FPpart[npmax];
+    part->z = new FPpart[npmax];
+    // allocate velocity
+    part->u = new FPpart[npmax];
+    part->v = new FPpart[npmax];
+    part->w = new FPpart[npmax];
+    // allocate charge = q * statistical weight
+    part->q = new FPinterp[npmax];
+    
+}
+/** deallocate */
+void particle_deallocate(struct particles* part)
+{
+    // deallocate particle variables
+    delete[] part->x;
+    delete[] part->y;
+    delete[] part->z;
+    delete[] part->u;
+    delete[] part->v;
+    delete[] part->w;
+    delete[] part->q;
+}

@@ -40,7 +40,7 @@
 // Don't change this
 #define USE_CPU (USE_GPU == VERIFY)
 
-inline bool not_eq(float f1, float f2)
+inline bool not_eqs(float f1, float f2)
 {
 	return fabs(f1 - f2) > 0.0001f;
 }
@@ -61,13 +61,13 @@ void verify_mover_PC(parameters& param, particles* part, particles* part_gpu)
 		// Compare gpu and cpu dynamic memories
 		for (int i = 0; i < part_gpu_out.nop; i++)
 		{
-			if (not_eq(part[is].x[i], part_gpu_out.x[i]) ||
-				not_eq(part[is].y[i], part_gpu_out.y[i]) ||
-				not_eq(part[is].z[i], part_gpu_out.z[i]) ||
-				not_eq(part[is].u[i], part_gpu_out.u[i]) ||
-				not_eq(part[is].v[i], part_gpu_out.v[i]) ||
-				not_eq(part[is].w[i], part_gpu_out.w[i]) ||
-				not_eq(part[is].q[i], part_gpu_out.q[i]))
+			if (not_eqs(part[is].x[i], part_gpu_out.x[i]) ||
+				not_eqs(part[is].y[i], part_gpu_out.y[i]) ||
+				not_eqs(part[is].z[i], part_gpu_out.z[i]) ||
+				not_eqs(part[is].u[i], part_gpu_out.u[i]) ||
+				not_eqs(part[is].v[i], part_gpu_out.v[i]) ||
+				not_eqs(part[is].w[i], part_gpu_out.w[i]) ||
+				not_eqs(part[is].q[i], part_gpu_out.q[i]))
 			{
 				printf("ERROR: part not equal at species: %d, index: %d\n", is, i);
 				correct = false;
@@ -100,16 +100,16 @@ void verify_interpP2G(grid& grd, parameters& param, interpDensSpecies* ids, inte
 		// Compare gpu and cpu dynamic memories
 		for (int i = 0; i < grid_size; i++)
 		{
-			if (not_eq(ids[is].rhon_flat[i], ids_gpu_out.rhon_flat[i]) ||
-				not_eq(ids[is].Jx_flat[i], ids_gpu_out.Jx_flat[i]) ||
-				not_eq(ids[is].Jy_flat[i], ids_gpu_out.Jy_flat[i]) ||
-				not_eq(ids[is].Jz_flat[i], ids_gpu_out.Jz_flat[i]) ||
-				not_eq(ids[is].pxx_flat[i], ids_gpu_out.pxx_flat[i]) ||
-				not_eq(ids[is].pxy_flat[i], ids_gpu_out.pxy_flat[i]) ||
-				not_eq(ids[is].pxz_flat[i], ids_gpu_out.pxz_flat[i]) ||
-				not_eq(ids[is].pyy_flat[i], ids_gpu_out.pyy_flat[i]) ||
-				not_eq(ids[is].pyz_flat[i], ids_gpu_out.pyz_flat[i]) ||
-				not_eq(ids[is].pzz_flat[i], ids_gpu_out.pzz_flat[i]))
+			if (not_eqs(ids[is].rhon_flat[i], ids_gpu_out.rhon_flat[i]) ||
+				not_eqs(ids[is].Jx_flat[i], ids_gpu_out.Jx_flat[i]) ||
+				not_eqs(ids[is].Jy_flat[i], ids_gpu_out.Jy_flat[i]) ||
+				not_eqs(ids[is].Jz_flat[i], ids_gpu_out.Jz_flat[i]) ||
+				not_eqs(ids[is].pxx_flat[i], ids_gpu_out.pxx_flat[i]) ||
+				not_eqs(ids[is].pxy_flat[i], ids_gpu_out.pxy_flat[i]) ||
+				not_eqs(ids[is].pxz_flat[i], ids_gpu_out.pxz_flat[i]) ||
+				not_eqs(ids[is].pyy_flat[i], ids_gpu_out.pyy_flat[i]) ||
+				not_eqs(ids[is].pyz_flat[i], ids_gpu_out.pyz_flat[i]) ||
+				not_eqs(ids[is].pzz_flat[i], ids_gpu_out.pzz_flat[i]))
 			{
 				printf("ERROR: ids not equal at species: %d, index: %d\n", is, i);
 				correct = false;
