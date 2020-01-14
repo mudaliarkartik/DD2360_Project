@@ -136,6 +136,7 @@ int main(int argc, char **argv){
     // Timing variables
     double iStart = cpuSecond();
     double iMover, iInterp, eMover = 0.0, eInterp= 0.0;
+	double iMemory, eMemory = 0.0;
     
     // Set-up the grid information
     grid grd;
@@ -171,6 +172,7 @@ int main(int argc, char **argv){
 
 #ifdef USE_GPU
 	//// GPU Allocation ===========================================
+		iMemory = cpuSecond();
 
 		// >>> Grid and field
 		grid grd_gpu = grd;
@@ -195,14 +197,11 @@ int main(int argc, char **argv){
 			ids_allocate_gpu(&ids_gpu[is], &grd);
 		}
 
+		eMemory += (cpuSecond() - iMemory);
 	//// ====================================================== GPU
 #endif
 
 
-
-    // Times of each iteration
-    std::vector<double> timesMover;
-	std::vector<double> timesInterp;
 
     // **********************************************************//
     // **** Start the Simulation!  Cycle index start from 1  *** //
@@ -218,8 +217,12 @@ int main(int argc, char **argv){
 		setZeroDensities(&idn, ids, &grd, param.ns);
 
 #if USE_GPU
+		iMemory = cpuSecond();
+
 		// GPU - Set ids to zero
 		ids_set_zero_gpu(ids_gpu, &grd, param.ns);
+
+		eMemory += (cpuSecond() - iMemory);
 #endif
 
 
@@ -237,8 +240,7 @@ int main(int argc, char **argv){
 		}
 
 		// Save current iteration time
-		timesMover.push_back(cpuSecond() - iMover);
-		eMover += timesMover[timesMover.size() - 1];
+		eMover += (cpuSecond() - iMover);
 
 #if VERIFY
 		// Test if result GPU == CPU
@@ -262,8 +264,7 @@ int main(int argc, char **argv){
 		}
 
 		// Save current iteration time
-		timesInterp.push_back(cpuSecond() - iInterp);
-		eInterp += timesInterp[timesInterp.size() - 1];
+		eInterp += (cpuSecond() - iInterp);
 
 #if VERIFY
 		verify_interpP2G(grd, param, ids, ids_gpu);
@@ -271,11 +272,15 @@ int main(int argc, char **argv){
 
 
 #if USE_GPU
+		iMemory = cpuSecond();
+
 		for (int is = 0; is < param.ns; is++)
 		{
 			// Only variable in need to be copied back to CPU between cycles
 			ids_copy_gpu_to_cpu(&ids[is], &ids_gpu[is], &grd);
 		}
+
+		eMemory += (cpuSecond() - iMemory);
 #endif
 
 
@@ -300,6 +305,7 @@ int main(int argc, char **argv){
 
 #if USE_GPU
 	//// GPU De-allocation ========================================
+		iMemory = cpuSecond();
 
 		// Grid and field
 		grid_field_free_gpu(&field_gpu, &grd_gpu);
@@ -311,6 +317,7 @@ int main(int argc, char **argv){
 			ids_free_gpu(&ids_gpu[is]);
 		}
 
+		eMemory += (cpuSecond() - iMemory);
 	//// ====================================================== GPU
 #endif
 
@@ -337,23 +344,10 @@ int main(int argc, char **argv){
     std::cout << "   Tot. Simulation Time (s) = " << iElaps << std::endl;
     std::cout << "   Mover Time / Cycle   (s) = " << eMover/param.ncycles << std::endl;
     std::cout << "   Interp. Time / Cycle (s) = " << eInterp/param.ncycles  << std::endl;
+#if USE_GPU
+	std::cout << "   GPU memory management  (s) = " << eMemory << std::endl;
+#endif
     std::cout << "**************************************" << std::endl;
-
-    // Print times of each mover_PC
-    std::cout << "Mover: " << std::endl;
-
-    for (double iter : timesMover)
-    {
-        std::cout << iter << std::endl;
-    }
-
-	// Print times of each iterpP2G
-	std::cout << "IterpP2G: " << std::endl;
-
-	for (double iter : timesInterp)
-	{
-		std::cout << iter << std::endl;
-	}
 
     // exit
     return 0;

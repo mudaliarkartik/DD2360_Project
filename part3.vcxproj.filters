@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{4cea5d90-4fb3-4985-b7d1-93ceb6c281c3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="sputniPIC\include\Alloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\Basic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\BC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\ConfigFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\EMfield.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\EMfield_aux.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\Grid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\IC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\input_array.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\InterpDensNet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\InterpDensSpecies.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\Parameters.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\Particles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\Particles_aux.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\PrecisionTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\RW_IO.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\Smoothing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\Timing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\TransArraySpace3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sputniPIC\include\timewindows.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="sputniPIC\src\Particles.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="sputniPIC\src\Basic.cpp" />
+    <ClCompile Include="sputniPIC\src\BC.cpp" />
+    <ClCompile Include="sputniPIC\src\ConfigFile.cpp" />
+    <ClCompile Include="sputniPIC\src\EMfield.cpp" />
+    <ClCompile Include="sputniPIC\src\EMfield_aux.cpp" />
+    <ClCompile Include="sputniPIC\src\Grid.cpp" />
+    <ClCompile Include="sputniPIC\src\InterpDensNet.cpp" />
+    <ClCompile Include="sputniPIC\src\InterpDensSpecies.cpp" />
+    <ClCompile Include="sputniPIC\src\Particles_aux.cpp" />
+    <ClCompile Include="sputniPIC\src\RW_IO.cpp" />
+    <ClCompile Include="sputniPIC\src\sputniPIC.cpp" />
+    <ClCompile Include="sputniPIC\src\Timing.cpp" />
+    <ClCompile Include="sputniPIC\src\TransArraySpace3D.cpp" />
+    <ClCompile Include="sputniPIC\src\Particles.cpp" />
+  </ItemGroup>
+</Project>

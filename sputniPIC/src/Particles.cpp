@@ -1,6 +1,5 @@
 #include "Particles.h"
 
-#if 0
 /** allocate particle arrays */
 void particle_allocate(struct parameters* param, struct particles* part, int is)
 {
@@ -72,7 +71,6 @@ void particle_deallocate(particles* part)
 	delete[] part->w;
 	delete[] part->q;
 }
-#endif
 
 
 int mover_PC_cpu(struct particles* part, struct EMfield* field, struct grid* grd, struct parameters* param)
