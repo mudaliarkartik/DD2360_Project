@@ -1,6 +1,8 @@
 #include "Timing.h"
 
+#ifdef _WIN64
 #include "timewindows.h"
+#endif
 
 double cpuSecond()
 {

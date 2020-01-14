@@ -1,7 +1,9 @@
 #ifndef TIMING_H
 #define TIMING_H
 
-//#include <sys/time.h>
+#ifndef _WIN64
+#include <sys/time.h>
+#endif
 
 // return time in second
 double cpuSecond();
